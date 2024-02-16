@@ -10,7 +10,7 @@
 
 AD9832 ad9832(FSYNC, CLK, DATA);     // Arduino pins to FSYNC, CLK, DATA
 
-uint32_t rx = 1000000;               // test 5 MHz
+uint32_t rx = 1000;               // test 5 MHz
 //---------------------------------------------------------------------------------------------------------
 void setup() {
   ad9832.init(FXTAL);
