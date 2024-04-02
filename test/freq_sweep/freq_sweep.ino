@@ -7,9 +7,9 @@
 
 AD9832 ad9832(FSYNC, CLK, DATA);     // Arduino pins to FSYNC, CLK, DATA
 
-uint32_t start_f = 100;
+uint32_t start_f = 2000;
 
-uint32_t end_f = 1000000;
+uint32_t end_f = 100000;
 
 //uint32_t rx = 1000000;               // test 5 MHz
 //---------------------------------------------------------------------------------------------------------
@@ -19,13 +19,19 @@ void setup() {
 }
 //---------------------------------------------------------------------------------------------------------
 
+uint32_t i = start_f;
+
 void loop() {
-  for(int i=start_f; i <= end_f;){
-    Serial.println(i);
-    ad9832.set_freq(i); 
-    i = i*10;
-    delay(3000);
+  
+  Serial.println(i);
+  ad9832.set_freq(i); 
+  i += 10000;
+  delay(100);
+
+  if(i > 1000000){
+    i = start_f;
   }
+
   
 }
 
