@@ -16,9 +16,9 @@ uint32_t rx = 10000;
 
 float V_out;
 float V_in;
-float period = 1.0/10000;
+float period;
 float dt;
-float prev_time = micros();
+float prev_time;
 float magnitude;
 
 int DAC_out = 0;
@@ -43,29 +43,66 @@ void setup() {
   Serial.println("Begin");
 }
 
+uint32_t start_f = rx;
+uint32_t i = start_f;
+
+float avg_capacitance;
+float sum_avg_capacitance = 0;
+
+float avg_inductance;
+float sum_avg_inductance = 0;
+
+float avg_resistance;
+float sum_avg_resistance = 0;
+
+//std::vector<double> frequencies_measured;
+//std::vector<double> magnitudes_measured;
+
+// Resistor Value in Series with DUT
+float R = 1000000;
+
+// Offset applied to Vin and Vout before magnitude measured
+float offset_val = 2; 
+
+int DUT = 2; //0 = R, 1 = C, 2 = L
+
+void loop() {
+  ad9832.set_freq(i);
+  //Serial.print(i);
+  //Serial.print(" ");
+  magnitude_func();
+  calc_values();
+}
+
 void magnitude_func() {
   DAC_out = 0;
+  dt = 0;
   MCP.setValue(DAC_out);
-  while(digitalRead(comp1) == 1){
-    MCP.setValue(DAC_out);
-    DAC_out++;
-    
+  prev_time = millis();
+  while(dt<0.1){
+    dt = (millis() - prev_time)/1000;
+    if (digitalRead(comp1) == 0){
+      DAC_out++;
+      MCP.setValue(DAC_out);
+      prev_time = millis();
+    }
   }
-  V_out = (MCP.getValue()*5.0/4096)-2;
-  
-  //delay(100);
-  
+  V_in = (MCP.getValue()*5.0/4096) - offset_val;
 
-  
   DAC_out = 0;
+  dt = 0;
   MCP.setValue(DAC_out);
-  while(digitalRead(comp2) == 1){
-    MCP.setValue(DAC_out);
-    DAC_out++;
-    
+  prev_time = millis();
+  while(dt<0.1){
+    dt = (millis() - prev_time)/1000;
+    if (digitalRead(comp2) == 0){
+      DAC_out++;
+      MCP.setValue(DAC_out);
+      prev_time = millis();
+    }
   }
-  V_in = (MCP.getValue()*5.0/4096)-2;
-  //delay(100);
+  V_out = (MCP.getValue()*5.0/4096) - offset_val;
+
   magnitude = V_out/V_in;
   if (magnitude > 1){
     magnitude = 1.0;
@@ -78,30 +115,8 @@ void magnitude_func() {
 }
 
 
-uint32_t start_f = 10000;
-uint32_t i = start_f;
-
-float avg_capacitance;
-float sum_avg_capacitance = 0;
-
-float avg_inductance;
-float sum_avg_inductance = 0;
-
-float avg_resistance;
-float sum_avg_resistance = 0;
-
-// Resistor Value in Series with DUT
-float R = 1000;
-
-int DUT = 0; //0 = R, 1 = C, 2 = L
-
-void loop() {
-  ad9832.set_freq(i);
-  Serial.print(i);
-  Serial.print(" ");
-  magnitude_func();
-  i += 10000;
-
+void calc_values(){
+  
   if (DUT == 0){
     sum_avg_resistance += (magnitude*R)/(1-magnitude);
     Serial.println((magnitude*R)/(1-magnitude));
@@ -113,23 +128,23 @@ void loop() {
     sum_avg_inductance += sqrt(((magnitude*magnitude)*(R*R))/(1-(magnitude*magnitude)))/(2*PI*float(i));
   }
   
-  //delay(100);
+  i += 20000;
 
   if(i > 100000){
     if (DUT == 0){
-      avg_resistance = sum_avg_resistance/10;
+      avg_resistance = sum_avg_resistance/5;
       Serial.print(" ");
       Serial.println(avg_resistance,12);
       sum_avg_resistance = 0;
     }
     if (DUT == 1){
-      avg_capacitance = sum_avg_capacitance/10;
+      avg_capacitance = sum_avg_capacitance/5;
       Serial.print(" ");
       Serial.println(avg_capacitance,12);
       sum_avg_capacitance = 0;
     }
     if (DUT == 2){
-      avg_inductance = sum_avg_inductance/10;
+      avg_inductance = sum_avg_inductance/5;
       Serial.print(" ");
       Serial.println(avg_inductance,12);
       sum_avg_inductance = 0;
@@ -138,12 +153,11 @@ void loop() {
     i = start_f;
     
   }
-
 }
 
-
-
-
+//void curve_fit(){
+  
+//}
 
 
 
