@@ -59,10 +59,10 @@ float sum_avg_resistance = 0;
 //std::vector<double> magnitudes_measured;
 
 // Resistor Value in Series with DUT
-float R = 1000000;
+float R = 50;
 
 // Offset applied to Vin and Vout before magnitude measured
-float offset_val = 2; 
+float offset_val = 1.96; 
 
 int DUT = 2; //0 = R, 1 = C, 2 = L
 
@@ -79,7 +79,7 @@ void magnitude_func() {
   dt = 0;
   MCP.setValue(DAC_out);
   prev_time = millis();
-  while(dt<0.1){
+  while(dt < 0.1){
     dt = (millis() - prev_time)/1000;
     if (digitalRead(comp1) == 0){
       DAC_out++;
@@ -93,7 +93,7 @@ void magnitude_func() {
   dt = 0;
   MCP.setValue(DAC_out);
   prev_time = millis();
-  while(dt<0.1){
+  while(dt<1){
     dt = (millis() - prev_time)/1000;
     if (digitalRead(comp2) == 0){
       DAC_out++;
@@ -104,7 +104,7 @@ void magnitude_func() {
   V_out = (MCP.getValue()*5.0/4096) - offset_val;
 
   magnitude = V_out/V_in;
-  if (magnitude > 1){
+  if (magnitude > 1.0){
     magnitude = 1.0;
   }
   Serial.print(V_out);
